@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interval Timer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    body.work {
+      background-color: #1a1a2e;
+      color: #eee;
+    }
+
+    body.rest {
+      background-color: #0f3460;
+      color: #94d2bd;
+    }
+
+    body.done {
+      background-color: #16213e;
+      color: #e94560;
+    }
+
+    #seconds {
+      font-size: 30vw;
+      font-weight: 200;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #progress {
+      font-size: 4vw;
+      opacity: 0.7;
+      margin-top: 2vh;
+    }
+
+    #phase {
+      font-size: 3vw;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      margin-top: 3vh;
+      opacity: 0.5;
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 3vh;
+      font-size: 1.5vw;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body class="work">
+  <div id="seconds">30</div>
+  <div id="progress">1 / 8</div>
+  <div id="phase">work</div>
+  <div id="hint">press space to start</div>
+
+  <script>
+    // Parse query params with defaults
+    const params = new URLSearchParams(window.location.search);
+    const WORK_SECONDS = parseInt(params.get('work')) || 30;
+    const REST_SECONDS = parseInt(params.get('rest')) || 10;
+    const TOTAL_ROUNDS = parseInt(params.get('rounds')) || 8;
+
+    // State
+    let running = false;
+    let intervalStartTime = 0;
+    let pausedElapsed = 0;
+    let currentRound = 1;
+    let isWorkPhase = true;
+    let audioCtx = null;
+
+    // DOM elements
+    const secondsEl = document.getElementById('seconds');
+    const progressEl = document.getElementById('progress');
+    const phaseEl = document.getElementById('phase');
+    const hintEl = document.getElementById('hint');
+
+    function getCurrentIntervalDuration() {
+      return isWorkPhase ? WORK_SECONDS : REST_SECONDS;
+    }
+
+    function getCurrentWorkSet() {
+      return currentRound;
+    }
+
+    function beep(frequency = 800, duration = 150) {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration / 1000);
+
+      oscillator.start(audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + duration / 1000);
+    }
+
+    function updateDisplay(secondsRemaining) {
+      secondsEl.textContent = Math.ceil(secondsRemaining);
+      progressEl.textContent = `${getCurrentWorkSet()} / ${TOTAL_ROUNDS}`;
+      phaseEl.textContent = isWorkPhase ? 'work' : 'rest';
+      document.body.className = isWorkPhase ? 'work' : 'rest';
+    }
+
+    function nextInterval() {
+      beep(isWorkPhase ? 600 : 800);
+
+      if (isWorkPhase) {
+        if (currentRound >= TOTAL_ROUNDS) {
+          // All done
+          running = false;
+          document.body.className = 'done';
+          phaseEl.textContent = 'done';
+          hintEl.textContent = 'press space to restart';
+          beep(1000, 300);
+          setTimeout(() => beep(1000, 300), 350);
+          return false;
+        }
+        isWorkPhase = false;
+      } else {
+        isWorkPhase = true;
+        currentRound++;
+      }
+
+      pausedElapsed = 0;
+      intervalStartTime = performance.now();
+      updateDisplay(getCurrentIntervalDuration());
+      return true;
+    }
+
+    function tick() {
+      if (!running) return;
+
+      const elapsed = (performance.now() - intervalStartTime) / 1000 + pausedElapsed;
+      const duration = getCurrentIntervalDuration();
+      const remaining = duration - elapsed;
+
+      if (remaining <= 0) {
+        if (nextInterval()) {
+          requestAnimationFrame(tick);
+        }
+      } else {
+        updateDisplay(remaining);
+        requestAnimationFrame(tick);
+      }
+    }
+
+    function toggleTimer() {
+      if (document.body.className === 'done') {
+        // Reset
+        currentRound = 1;
+        isWorkPhase = true;
+        pausedElapsed = 0;
+        updateDisplay(WORK_SECONDS);
+      }
+
+      if (running) {
+        // Pause
+        running = false;
+        pausedElapsed += (performance.now() - intervalStartTime) / 1000;
+        hintEl.textContent = 'press space to resume';
+      } else {
+        // Start
+        running = true;
+        intervalStartTime = performance.now();
+        hintEl.textContent = 'press space to pause';
+        requestAnimationFrame(tick);
+      }
+    }
+
+    // Initialize display
+    updateDisplay(WORK_SECONDS);
+
+    // Keyboard handler
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleTimer();
+      }
+    });
+  </script>
+</body>
+</html>
