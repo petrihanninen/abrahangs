@@ -70,7 +70,7 @@
   <div id="seconds">30</div>
   <div id="progress">1 / 8</div>
   <div id="phase">work</div>
-  <div id="hint">press space to start</div>
+  <div id="hint">tap or press space to start</div>
 
   <script>
     // Parse query params with defaults
@@ -137,7 +137,7 @@
           running = false;
           document.body.className = 'done';
           phaseEl.textContent = 'done';
-          hintEl.textContent = 'press space to restart';
+          hintEl.textContent = 'tap or press space to restart';
           beep(1000, 300);
           setTimeout(() => beep(1000, 300), 350);
           return false;
@@ -184,12 +184,12 @@
         // Pause
         running = false;
         pausedElapsed += (performance.now() - intervalStartTime) / 1000;
-        hintEl.textContent = 'press space to resume';
+        hintEl.textContent = 'tap or press space to resume';
       } else {
         // Start
         running = true;
         intervalStartTime = performance.now();
-        hintEl.textContent = 'press space to pause';
+        hintEl.textContent = 'tap or press space to pause';
         requestAnimationFrame(tick);
       }
     }
@@ -204,6 +204,17 @@
         toggleTimer();
       }
     });
+
+    // Click handler
+    document.addEventListener('click', () => {
+      toggleTimer();
+    });
+
+    // Touch handler
+    document.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      toggleTimer();
+    }, { passive: false });
   </script>
 </body>
 </html>
