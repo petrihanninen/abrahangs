@@ -37,6 +37,16 @@
       color: #e94560;
     }
 
+    body.done #seconds {
+      font-size: 15vw;
+      animation: celebrate 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes celebrate {
+      0% { transform: scale(1) rotate(-2deg); }
+      100% { transform: scale(1.05) rotate(2deg); }
+    }
+
     #seconds {
       font-size: 30vw;
       font-weight: 200;
@@ -69,6 +79,10 @@
       #seconds {
         font-size: 40vw;
         font-weight: 300;
+      }
+
+      body.done #seconds {
+        font-size: 18vw;
       }
 
       #progress {
@@ -155,7 +169,10 @@
           // All done
           running = false;
           document.body.className = 'done';
-          phaseEl.textContent = 'done';
+          const celebrations = ['BEAST', 'DONE', 'NAILED IT', 'CRUSHED'];
+          secondsEl.textContent = celebrations[Math.floor(Math.random() * celebrations.length)];
+          progressEl.textContent = `${TOTAL_ROUNDS} / ${TOTAL_ROUNDS}`;
+          phaseEl.textContent = 'nice work';
           hintEl.textContent = 'tap or press space to restart';
           beep(1000, 300);
           setTimeout(() => beep(1000, 300), 350);
