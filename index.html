@@ -109,8 +109,8 @@
     // Parse query params with defaults
     const params = new URLSearchParams(window.location.search);
     const WORK_SECONDS = parseInt(params.get('work')) || 10;
-    const REST_SECONDS = parseInt(params.get('rest')) || 50;
-    const TOTAL_ROUNDS = parseInt(params.get('rounds')) || 10;
+    const REST_SECONDS = parseInt(params.get('rest')) || 20;
+    const TOTAL_ROUNDS = parseInt(params.get('rounds')) || 20;
 
     // State
     let running = false;
