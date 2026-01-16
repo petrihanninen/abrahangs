@@ -37,6 +37,11 @@
       color: #e94560;
     }
 
+    body.countdown {
+      background-color: #2d2d44;
+      color: #ffd93d;
+    }
+
     body.done #seconds {
       font-size: 15vw;
       animation: celebrate 0.6s ease-in-out infinite alternate;
@@ -99,10 +104,10 @@
     }
   </style>
 </head>
-<body class="work">
-  <div id="seconds">30</div>
-  <div id="progress">1 / 8</div>
-  <div id="phase">work</div>
+<body class="countdown">
+  <div id="seconds">5</div>
+  <div id="progress">get ready</div>
+  <div id="phase">starting</div>
   <div id="hint">tap or press space to start</div>
 
   <script>
@@ -111,6 +116,7 @@
     const WORK_SECONDS = parseInt(params.get('work')) || 10;
     const REST_SECONDS = parseInt(params.get('rest')) || 20;
     const TOTAL_ROUNDS = parseInt(params.get('rounds')) || 20;
+    const COUNTDOWN_SECONDS = parseInt(params.get('countdown')) || 5;
 
     // State
     let running = false;
@@ -118,6 +124,7 @@
     let pausedElapsed = 0;
     let currentRound = 1;
     let isWorkPhase = true;
+    let isCountdown = true;
     let audioCtx = null;
 
     // DOM elements
@@ -127,6 +134,7 @@
     const hintEl = document.getElementById('hint');
 
     function getCurrentIntervalDuration() {
+      if (isCountdown) return COUNTDOWN_SECONDS;
       return isWorkPhase ? WORK_SECONDS : REST_SECONDS;
     }
 
@@ -156,12 +164,27 @@
 
     function updateDisplay(secondsRemaining) {
       secondsEl.textContent = Math.ceil(secondsRemaining);
-      progressEl.textContent = `${getCurrentWorkSet()} / ${TOTAL_ROUNDS}`;
-      phaseEl.textContent = isWorkPhase ? 'work' : 'rest';
-      document.body.className = isWorkPhase ? 'work' : 'rest';
+      if (isCountdown) {
+        progressEl.textContent = 'get ready';
+        phaseEl.textContent = 'starting';
+        document.body.className = 'countdown';
+      } else {
+        progressEl.textContent = `${getCurrentWorkSet()} / ${TOTAL_ROUNDS}`;
+        phaseEl.textContent = isWorkPhase ? 'work' : 'rest';
+        document.body.className = isWorkPhase ? 'work' : 'rest';
+      }
     }
 
     function nextInterval() {
+      if (isCountdown) {
+        beep(800);
+        isCountdown = false;
+        pausedElapsed = 0;
+        intervalStartTime = performance.now();
+        updateDisplay(WORK_SECONDS);
+        return true;
+      }
+
       beep(isWorkPhase ? 600 : 800);
 
       if (isWorkPhase) {
@@ -212,8 +235,9 @@
         // Reset
         currentRound = 1;
         isWorkPhase = true;
+        isCountdown = true;
         pausedElapsed = 0;
-        updateDisplay(WORK_SECONDS);
+        updateDisplay(COUNTDOWN_SECONDS);
       }
 
       if (running) {
@@ -231,7 +255,7 @@
     }
 
     // Initialize display
-    updateDisplay(WORK_SECONDS);
+    updateDisplay(COUNTDOWN_SECONDS);
 
     // Keyboard handler
     document.addEventListener('keydown', (e) => {
