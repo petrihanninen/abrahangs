@@ -73,6 +73,26 @@
       opacity: 0.5;
     }
 
+    #grip-type {
+      font-size: 5vw;
+      margin-bottom: 3vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1vh;
+    }
+
+    #grip-emoji {
+      font-size: 8vw;
+    }
+
+    #grip-name {
+      font-size: 3vw;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.8;
+    }
+
     #hint {
       position: fixed;
       bottom: 3vh;
@@ -101,10 +121,22 @@
       #hint {
         font-size: 3vw;
       }
+
+      #grip-emoji {
+        font-size: 12vw;
+      }
+
+      #grip-name {
+        font-size: 5vw;
+      }
     }
   </style>
 </head>
 <body class="countdown">
+  <div id="grip-type">
+    <div id="grip-emoji">✊</div>
+    <div id="grip-name">half crimp</div>
+  </div>
   <div id="seconds">5</div>
   <div id="progress">get ready</div>
   <div id="phase">starting</div>
@@ -132,6 +164,9 @@
     const progressEl = document.getElementById('progress');
     const phaseEl = document.getElementById('phase');
     const hintEl = document.getElementById('hint');
+    const gripEmojiEl = document.getElementById('grip-emoji');
+    const gripNameEl = document.getElementById('grip-name');
+    const gripTypeEl = document.getElementById('grip-type');
 
     function getCurrentIntervalDuration() {
       if (isCountdown) return COUNTDOWN_SECONDS;
@@ -162,16 +197,31 @@
       oscillator.stop(audioCtx.currentTime + duration / 1000);
     }
 
+    function updateGripType() {
+      const halfwayPoint = Math.ceil(TOTAL_ROUNDS / 2);
+      if (currentRound <= halfwayPoint) {
+        gripEmojiEl.textContent = '✊';
+        gripNameEl.textContent = 'half crimp';
+      } else {
+        gripEmojiEl.textContent = '🖐️';
+        gripNameEl.textContent = '3-finger open';
+      }
+    }
+
     function updateDisplay(secondsRemaining) {
       secondsEl.textContent = Math.ceil(secondsRemaining);
       if (isCountdown) {
         progressEl.textContent = 'get ready';
         phaseEl.textContent = 'starting';
         document.body.className = 'countdown';
+        gripTypeEl.style.display = 'flex';
+        updateGripType();
       } else {
         progressEl.textContent = `${getCurrentWorkSet()} / ${TOTAL_ROUNDS}`;
         phaseEl.textContent = isWorkPhase ? 'work' : 'rest';
         document.body.className = isWorkPhase ? 'work' : 'rest';
+        gripTypeEl.style.display = 'flex';
+        updateGripType();
       }
     }
 
@@ -192,6 +242,7 @@
           // All done
           running = false;
           document.body.className = 'done';
+          gripTypeEl.style.display = 'none';
           const celebrations = ['BEAST', 'DONE', 'NAILED IT', 'CRUSHED'];
           secondsEl.textContent = celebrations[Math.floor(Math.random() * celebrations.length)];
           progressEl.textContent = `${TOTAL_ROUNDS} / ${TOTAL_ROUNDS}`;
