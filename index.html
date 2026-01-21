@@ -100,6 +100,45 @@
       opacity: 0.3;
     }
 
+    /* Larger screens - shrink everything to fit vertically */
+    @media (min-width: 769px) {
+      #seconds {
+        font-size: 22vw;
+      }
+
+      body.done #seconds {
+        font-size: 12vw;
+      }
+
+      #progress {
+        font-size: 3vw;
+        margin-top: 1vh;
+      }
+
+      #phase {
+        font-size: 2.2vw;
+        margin-top: 2vh;
+      }
+
+      #grip-type {
+        margin-bottom: 2vh;
+        gap: 0.5vh;
+      }
+
+      #grip-emoji {
+        font-size: 6vw;
+      }
+
+      #grip-name {
+        font-size: 2.2vw;
+      }
+
+      #hint {
+        bottom: 2vh;
+        font-size: 1.2vw;
+      }
+    }
+
     @media (max-width: 768px) {
       #seconds {
         font-size: 40vw;
