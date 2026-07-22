@@ -14,11 +14,17 @@ The default values match the Abrahangs protocol:
 
 ## Site
 
-I do host this atm on my own server, which you can find here:
+Hosted on GitHub Pages:
 
 https://abrahangs.petrihanninen.com
 
-There are absolutely no guarantees that anything will be up and running at any given time.
+## Local development
+
+There is no build step. Open `index.html` directly in a browser, or serve it locally:
+
+```
+python3 -m http.server
+```
 
 ## License
 
