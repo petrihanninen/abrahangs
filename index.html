@@ -100,6 +100,23 @@
       opacity: 0.3;
     }
 
+    #mode-toggle {
+      position: fixed;
+      top: 3vh;
+      right: 3vw;
+      font: inherit;
+      font-size: 1.5vw;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      padding: 0.6em 1em;
+      background: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+
     /* Larger screens - shrink everything to fit vertically */
     @media (min-width: 769px) {
       #seconds {
@@ -161,6 +178,10 @@
         font-size: 3vw;
       }
 
+      #mode-toggle {
+        font-size: 3.5vw;
+      }
+
       #grip-emoji {
         font-size: 12vw;
       }
@@ -179,6 +200,7 @@
   <div id="seconds">5</div>
   <div id="progress">get ready</div>
   <div id="phase">starting</div>
+  <button id="mode-toggle"></button>
   <div id="hint">tap or press space to start</div>
 
   <script>
@@ -186,8 +208,17 @@
     const params = new URLSearchParams(window.location.search);
     const WORK_SECONDS = parseInt(params.get('work')) || 10;
     const REST_SECONDS = parseInt(params.get('rest')) || 20;
-    const TOTAL_ROUNDS = parseInt(params.get('rounds')) || 20;
+    const ROUNDS = parseInt(params.get('rounds')) || 20;
     const COUNTDOWN_SECONDS = parseInt(params.get('countdown')) || 5;
+
+    let twoHanded = params.get('hands') === '2';
+    let TOTAL_ROUNDS, REST_SECONDS_EFFECTIVE;
+
+    function applyMode() {
+      TOTAL_ROUNDS = twoHanded ? Math.ceil(ROUNDS / 2) : ROUNDS;
+      REST_SECONDS_EFFECTIVE = twoHanded ? 2 * REST_SECONDS + WORK_SECONDS : REST_SECONDS;
+      modeToggleEl.textContent = twoHanded ? 'two hands' : 'one hand';
+    }
 
     // State
     let running = false;
@@ -206,10 +237,11 @@
     const gripEmojiEl = document.getElementById('grip-emoji');
     const gripNameEl = document.getElementById('grip-name');
     const gripTypeEl = document.getElementById('grip-type');
+    const modeToggleEl = document.getElementById('mode-toggle');
 
     function getCurrentIntervalDuration() {
       if (isCountdown) return COUNTDOWN_SECONDS;
-      return isWorkPhase ? WORK_SECONDS : REST_SECONDS;
+      return isWorkPhase ? WORK_SECONDS : REST_SECONDS_EFFECTIVE;
     }
 
     function getCurrentWorkSet() {
@@ -320,14 +352,29 @@
       }
     }
 
+    function reset() {
+      currentRound = 1;
+      isWorkPhase = true;
+      isCountdown = true;
+      pausedElapsed = 0;
+      updateDisplay(COUNTDOWN_SECONDS);
+    }
+
+    function toggleMode() {
+      twoHanded = !twoHanded;
+      const url = new URL(window.location);
+      if (twoHanded) url.searchParams.set('hands', '2');
+      else url.searchParams.delete('hands');
+      history.replaceState(null, '', url);
+      applyMode();
+      running = false;
+      reset();
+      hintEl.textContent = 'tap or press space to start';
+    }
+
     function toggleTimer() {
       if (document.body.className === 'done') {
-        // Reset
-        currentRound = 1;
-        isWorkPhase = true;
-        isCountdown = true;
-        pausedElapsed = 0;
-        updateDisplay(COUNTDOWN_SECONDS);
+        reset();
       }
 
       if (running) {
@@ -345,7 +392,17 @@
     }
 
     // Initialize display
+    applyMode();
     updateDisplay(COUNTDOWN_SECONDS);
+
+    modeToggleEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      modeToggleEl.blur();
+      toggleMode();
+    });
+    modeToggleEl.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    });
 
     // Keyboard handler
     document.addEventListener('keydown', (e) => {
