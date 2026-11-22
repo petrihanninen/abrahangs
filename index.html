@@ -270,7 +270,8 @@
 
     function updateGripType() {
       const halfwayPoint = Math.ceil(TOTAL_ROUNDS / 2);
-      if (currentRound <= halfwayPoint) {
+      const round = !isCountdown && !isWorkPhase ? currentRound + 1 : currentRound;
+      if (round <= halfwayPoint) {
         gripEmojiEl.textContent = '✊';
         gripNameEl.textContent = 'half crimp';
       } else {
