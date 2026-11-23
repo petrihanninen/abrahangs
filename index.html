@@ -228,6 +228,7 @@
     let isWorkPhase = true;
     let isCountdown = true;
     let audioCtx = null;
+    let restWarned = false;
 
     // DOM elements
     const secondsEl = document.getElementById('seconds');
@@ -330,6 +331,7 @@
         currentRound++;
       }
 
+      restWarned = false;
       pausedElapsed = 0;
       intervalStartTime = performance.now();
       updateDisplay(getCurrentIntervalDuration());
@@ -348,6 +350,11 @@
           requestAnimationFrame(tick);
         }
       } else {
+        const warnSeconds = REST_SECONDS_EFFECTIVE >= 50 ? 10 : 5;
+        if (!isCountdown && !isWorkPhase && !restWarned && remaining <= warnSeconds) {
+          restWarned = true;
+          beep(1000);
+        }
         updateDisplay(remaining);
         requestAnimationFrame(tick);
       }
@@ -357,6 +364,7 @@
       currentRound = 1;
       isWorkPhase = true;
       isCountdown = true;
+      restWarned = false;
       pausedElapsed = 0;
       updateDisplay(COUNTDOWN_SECONDS);
     }
